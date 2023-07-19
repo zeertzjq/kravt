@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"libvirt.org/go/libvirt"
 	"libvirt.org/go/libvirtxml"
+	"net"
 	"path/filepath"
 	"strings"
 )
@@ -16,9 +17,9 @@ func main() {
 	mountTagPtr := flag.String("rootfs-tag", "fs0", "tag name to mount filesystem")
 	bridgePtr := flag.Bool("bridge", false, "bridge network to guest")
 	bridgeNamePtr := flag.String("bridge-name", "virbr0", "name of bridge device")
-	bridgeGuestPtr := flag.String("bridge-guest", "172.44.0.2", "guest IP address")
-	bridgeGatewayPtr := flag.String("bridge-gateway", "172.44.0.1", "gateway IP address")
-	bridgeNetmaskPtr := flag.String("bridge-netmask", "255.255.255.0", "bridge subnet mask")
+	bridgeGuestPtr := flag.String("bridge-guest", "172.44.0.2", "guest IPv4 address")
+	bridgeGatewayPtr := flag.String("bridge-gateway", "172.44.0.1", "gateway IPv4 address")
+	bridgeNetmaskPtr := flag.String("bridge-netmask", "255.255.255.0", "bridge IPv4 subnet mask")
 	memoryPtr := flag.Uint("memory", 32, "assign MiB memory to guest")
 	flag.Parse()
 	if *domainNamePtr == "" {
@@ -39,10 +40,26 @@ func main() {
 		}
 	}
 	cmdlineArgs := make([]string, 0)
+	bridgeGuest := net.ParseIP(*bridgeGuestPtr).To4()
+	bridgeGateway := net.ParseIP(*bridgeGatewayPtr).To4()
+	bridgeNetmask := net.ParseIP(*bridgeNetmaskPtr).To4()
 	if *bridgePtr {
-		cmdlineArgs = append(cmdlineArgs, fmt.Sprintf("netdev.ipv4_addr=%s", *bridgeGuestPtr))
-		cmdlineArgs = append(cmdlineArgs, fmt.Sprintf("netdev.ipv4_gw_addr=%s", *bridgeGatewayPtr))
-		cmdlineArgs = append(cmdlineArgs, fmt.Sprintf("netdev.ipv4_subnet_mask=%s", *bridgeNetmaskPtr))
+		if bridgeGuest == nil {
+			panic("invalid guest IPv4 address")
+		}
+		if bridgeGateway == nil {
+			panic("invalid gateway IPv4 address")
+		}
+		if bridgeNetmask == nil {
+			panic("invalid IPv4 subnet mask")
+		}
+		for _, arg := range []string{
+			fmt.Sprintf("netdev.ipv4_addr=%s", bridgeGuest.String()),
+			fmt.Sprintf("netdev.ipv4_gw_addr=%s", bridgeGateway.String()),
+			fmt.Sprintf("netdev.ipv4_subnet_mask=%s", bridgeNetmask.String()),
+		} {
+			cmdlineArgs = append(cmdlineArgs, arg)
+		}
 	}
 	cmdlineArgs = append(cmdlineArgs, "--")
 	for _, arg := range flag.Args() {
