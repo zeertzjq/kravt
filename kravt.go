@@ -15,6 +15,7 @@ func main() {
 	rootfsPathPtr := flag.String("r", "", "path to root filesystem")
 	mountTagPtr := flag.String("t", "fs0", "tag name to mount filesystem")
 	networkingPtr := flag.Bool("n", false, "add networking support")
+	bridgeNamePtr := flag.String("b", "virbr0", "name of the bridge device")
 	memoryPtr := flag.Uint("m", 32, "assign MiB memory to guest")
 	flag.Parse()
 	if *domainNamePtr == "" {
@@ -106,7 +107,7 @@ func main() {
 			{
 				Source: &libvirtxml.DomainInterfaceSource{
 					Bridge: &libvirtxml.DomainInterfaceSourceBridge{
-						Bridge: "virbr0",
+						Bridge: *bridgeNamePtr,
 					},
 				},
 				Target: &libvirtxml.DomainInterfaceTarget{
