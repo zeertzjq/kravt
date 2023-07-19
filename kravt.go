@@ -10,13 +10,13 @@ import (
 )
 
 func main() {
-	domainNamePtr := flag.String("d", "", "domain name")
-	kernelPathPtr := flag.String("k", "", "path to kernel image")
-	rootfsPathPtr := flag.String("r", "", "path to root filesystem")
-	mountTagPtr := flag.String("t", "fs0", "tag name to mount filesystem")
-	networkingPtr := flag.Bool("n", false, "add networking support")
-	bridgeNamePtr := flag.String("b", "virbr0", "name of the bridge device")
-	memoryPtr := flag.Uint("m", 32, "assign MiB memory to guest")
+	domainNamePtr := flag.String("domain", "", "domain name")
+	kernelPathPtr := flag.String("kernel", "", "path to kernel image")
+	rootfsPathPtr := flag.String("rootfs", "", "path to root filesystem")
+	mountTagPtr := flag.String("rootfs-tag", "fs0", "tag name to mount filesystem")
+	bridgePtr := flag.Bool("bridge", false, "bridge network to guest")
+	bridgeNamePtr := flag.String("bridge-name", "virbr0", "name of bridge device")
+	memoryPtr := flag.Uint("memory", 32, "assign MiB memory to guest")
 	flag.Parse()
 	if *domainNamePtr == "" {
 		panic("missing domain name")
@@ -36,7 +36,7 @@ func main() {
 		}
 	}
 	cmdlineArgs := make([]string, 0)
-	if *networkingPtr {
+	if *bridgePtr {
 		cmdlineArgs = append(cmdlineArgs, "netdev.ipv4_addr=172.44.0.2")
 		cmdlineArgs = append(cmdlineArgs, "netdev.ipv4_gw_addr=172.44.0.1")
 		cmdlineArgs = append(cmdlineArgs, "netdev.ipv4_subnet_mask=255.255.255.0")
@@ -102,16 +102,13 @@ func main() {
 			},
 		}
 	}
-	if *networkingPtr {
+	if *bridgePtr {
 		domcfg.Devices.Interfaces = []libvirtxml.DomainInterface{
 			{
 				Source: &libvirtxml.DomainInterfaceSource{
 					Bridge: &libvirtxml.DomainInterfaceSourceBridge{
 						Bridge: *bridgeNamePtr,
 					},
-				},
-				Target: &libvirtxml.DomainInterfaceTarget{
-					Dev: "tap0",
 				},
 				Model: &libvirtxml.DomainInterfaceModel{
 					Type: "virtio",
