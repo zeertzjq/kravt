@@ -181,50 +181,6 @@ func handleDefine(args []string) {
 	}
 }
 
-func handleUndefine(args []string) {
-	cmd := flag.NewFlagSet(fmt.Sprintf("%s undefine", os.Args[0]), flag.ExitOnError)
-	domainNamePtr := cmd.String("domain", "", "domain name")
-	cmd.Parse(args)
-	if *domainNamePtr == "" {
-		fmt.Fprintln(os.Stderr, "missing domain name")
-		cmd.Usage()
-		return
-	}
-	conn, err := libvirt.NewConnect("qemu:///system")
-	if err != nil {
-		panic(err)
-	}
-	defer conn.Close()
-	dom, err := conn.LookupDomainByName(*domainNamePtr)
-	if err != nil {
-		panic(err)
-	}
-	interfaces := make([]libvirtxml.DomainInterface, 0)
-	xmldoc, err := dom.GetXMLDesc(0)
-	if err == nil {
-		domcfg := &libvirtxml.Domain{}
-		err = domcfg.Unmarshal(xmldoc)
-		if err == nil {
-			interfaces = domcfg.Devices.Interfaces
-		} else {
-			fmt.Fprintln(os.Stderr, err)
-		}
-	} else {
-		fmt.Fprintln(os.Stderr, err)
-	}
-	err = dom.Undefine()
-	if err != nil {
-		panic(err)
-	}
-	for _, iface := range interfaces {
-		if iface.Source != nil && iface.Source.Bridge != nil {
-			bridgeName := iface.Source.Bridge.Bridge
-			tryCommand("sudo", "ip", "link", "set", "dev", bridgeName, "down")
-			tryCommand("sudo", "ip", "link", "del", "dev", bridgeName)
-		}
-	}
-}
-
 func handleStart(args []string) {
 	cmd := flag.NewFlagSet(fmt.Sprintf("%s start", os.Args[0]), flag.ExitOnError)
 	domainNamePtr := cmd.String("domain", "", "domain name")
@@ -273,13 +229,58 @@ func handleDestroy(args []string) {
 	}
 }
 
+func handleUndefine(args []string) {
+	cmd := flag.NewFlagSet(fmt.Sprintf("%s undefine", os.Args[0]), flag.ExitOnError)
+	domainNamePtr := cmd.String("domain", "", "domain name")
+	cmd.Parse(args)
+	if *domainNamePtr == "" {
+		fmt.Fprintln(os.Stderr, "missing domain name")
+		cmd.Usage()
+		return
+	}
+	conn, err := libvirt.NewConnect("qemu:///system")
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+	dom, err := conn.LookupDomainByName(*domainNamePtr)
+	if err != nil {
+		panic(err)
+	}
+	interfaces := make([]libvirtxml.DomainInterface, 0)
+	xmldoc, err := dom.GetXMLDesc(0)
+	if err == nil {
+		domcfg := &libvirtxml.Domain{}
+		err = domcfg.Unmarshal(xmldoc)
+		if err == nil {
+			interfaces = domcfg.Devices.Interfaces
+		} else {
+			fmt.Fprintln(os.Stderr, err)
+		}
+	} else {
+		fmt.Fprintln(os.Stderr, err)
+	}
+	err = dom.Undefine()
+	if err != nil {
+		panic(err)
+	}
+	for _, iface := range interfaces {
+		if iface.Source == nil || iface.Source.Bridge == nil {
+			continue
+		}
+		bridgeName := iface.Source.Bridge.Bridge
+		tryCommand("sudo", "ip", "link", "set", "dev", bridgeName, "down")
+		tryCommand("sudo", "ip", "link", "del", "dev", bridgeName)
+	}
+}
+
 func printUsage() {
 	fmt.Fprintf(os.Stderr, "Usage: %s <command> [options]\n", os.Args[0])
 	fmt.Fprintln(os.Stderr, "Commands:")
 	fmt.Fprintln(os.Stderr, "  define")
-	fmt.Fprintln(os.Stderr, "  undefine")
 	fmt.Fprintln(os.Stderr, "  start")
 	fmt.Fprintln(os.Stderr, "  destroy")
+	fmt.Fprintln(os.Stderr, "  undefine")
 }
 
 func main() {
@@ -290,12 +291,12 @@ func main() {
 	switch os.Args[1] {
 	case "define":
 		handleDefine(os.Args[2:])
-	case "undefine":
-		handleUndefine(os.Args[2:])
 	case "start":
 		handleStart(os.Args[2:])
 	case "destroy":
 		handleDestroy(os.Args[2:])
+	case "undefine":
+		handleUndefine(os.Args[2:])
 	default:
 		printUsage()
 		return
