@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func tryCommand(name string, args ...string) {
@@ -260,6 +261,10 @@ func handleInfo(args []string) {
 	default:
 		fmt.Println("State: unknown")
 	}
+	fmt.Printf("Max memory: %d KiB\n", info.MaxMem)
+	fmt.Printf("Used memory: %d KiB\n", info.Memory)
+	fmt.Printf("CPU(s): %d\n", info.NrVirtCpu)
+	fmt.Printf("CPU time: %.9fs\n", time.Duration(info.CpuTime).Seconds())
 }
 
 func handleDestroy(args []string) {
