@@ -245,6 +245,7 @@ func handleDestroy(args []string) {
 func handleUndefine(args []string) {
 	cmd := flag.NewFlagSet(fmt.Sprintf("%s undefine", os.Args[0]), flag.ExitOnError)
 	domainNamePtr := cmd.String("domain", "", "domain name")
+	destroyPtr := cmd.Bool("destroy", false, "destroy the domain")
 	cmd.Parse(args)
 	if len(cmd.Args()) > 0 {
 		fmt.Fprintln(os.Stderr, "unexpected arguments")
@@ -277,6 +278,12 @@ func handleUndefine(args []string) {
 		}
 	} else {
 		fmt.Fprintln(os.Stderr, err)
+	}
+	if *destroyPtr {
+		err = dom.Destroy()
+		if err != nil {
+			panic(err)
+		}
 	}
 	err = dom.Undefine()
 	if err != nil {
