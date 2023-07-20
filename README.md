@@ -20,7 +20,7 @@ make && sudo make PREFIX=/opt install
 
 ## Examples
 
-### Example with [app-nginx](https://github.com/unikraft/app-nginx)
+### Example using [app-nginx](https://github.com/unikraft/app-nginx)
 
 To define a libvirt domain for the unikernel without launching a virtual machine:
 
@@ -64,7 +64,7 @@ To undefine the libvirt domain and shut down the virtual machine:
 kravt undefine -domain app-nginx -destroy
 ```
 
-### Example with [app-elfloader](https://github.com/unikraft/app-elfloader) and [nginx](https://github.com/unikraft/dynamic-apps/tree/master/nginx)
+### Example using [app-elfloader](https://github.com/unikraft/app-elfloader) and [nginx](https://github.com/unikraft/dynamic-apps/tree/master/nginx)
 
 To define a libvirt domain for the unikernel without launching a virtual machine:
 
