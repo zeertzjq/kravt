@@ -9,9 +9,7 @@ clean:
 	rm -f kravt
 
 install:
-	mkdir -p $(DESTDIR)$(PREFIX)/bin
-	cp -f kravt $(DESTDIR)$(PREFIX)/bin/
-	chmod 755 $(DESTDIR)$(PREFIX)/bin/kravt
+	install -Dm755 kravt -t "$(DESTDIR)$(PREFIX)/bin/"
 
 uninstall:
-	rm -f $(DESTDIR)$(PREFIX)/bin/kravt
+	rm -f "$(DESTDIR)$(PREFIX)/bin/kravt"
