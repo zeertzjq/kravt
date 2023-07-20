@@ -166,7 +166,44 @@ func handleUndefine(conn *libvirt.Connect, args []string) {
 	if err != nil {
 		panic(err)
 	}
-	dom.Undefine()
+	err = dom.Undefine()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func handleStart(conn *libvirt.Connect, args []string) {
+	cmd := flag.NewFlagSet("start", flag.ExitOnError)
+	domainNamePtr := cmd.String("domain", "", "domain name")
+	cmd.Parse(args)
+	if *domainNamePtr == "" {
+		panic("missing domain name")
+	}
+	dom, err := conn.LookupDomainByName(*domainNamePtr)
+	if err != nil {
+		panic(err)
+	}
+	err = dom.Create()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func handleDestroy(conn *libvirt.Connect, args []string) {
+	cmd := flag.NewFlagSet("destroy", flag.ExitOnError)
+	domainNamePtr := cmd.String("domain", "", "domain name")
+	cmd.Parse(args)
+	if *domainNamePtr == "" {
+		panic("missing domain name")
+	}
+	dom, err := conn.LookupDomainByName(*domainNamePtr)
+	if err != nil {
+		panic(err)
+	}
+	err = dom.Destroy()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func main() {
@@ -185,6 +222,10 @@ func main() {
 		handleDefine(conn, os.Args[2:])
 	case "undefine":
 		handleUndefine(conn, os.Args[2:])
+	case "start":
+		handleStart(conn, os.Args[2:])
+	case "destroy":
+		handleDestroy(conn, os.Args[2:])
 	default:
 		panic("unknown command")
 	}
