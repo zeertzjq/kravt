@@ -25,13 +25,13 @@ make && sudo make PREFIX=/opt install
 To define a libvirt domain for the unikernel without launching a virtual machine:
 
 ```sh
-kravt define -domain app-nginx -kernel build/nginx_qemu-x86_64 -rootfs fs0/
+kravt define -domain app-nginx -kernel build/nginx_qemu-x86_64 -rootfs fs0/ -bridge
 ```
 
 To define a libvirt domain for the unikernel and launch a virtual machine:
 
 ```sh
-kravt define -domain app-nginx -start -kernel build/nginx_qemu-x86_64 -rootfs fs0/
+kravt define -domain app-nginx -start -kernel build/nginx_qemu-x86_64 -rootfs fs0/ -bridge
 ```
 
 To launch a virtual machine when none is running:
@@ -69,13 +69,13 @@ kravt undefine -domain app-nginx -destroy
 To define a libvirt domain for the unikernel without launching a virtual machine:
 
 ```sh
-kravt define -domain app-elfloader -kernel build/elfloader_qemu-x86_64 -memory 2048 -bridge -rootfs ../dynamic-apps/nginx/ -- /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
+kravt define -domain app-elfloader -kernel build/elfloader_qemu-x86_64 -memory 2048 -rootfs ../dynamic-apps/nginx/ -bridge -- /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
 ```
 
 To define a libvirt domain for the unikernel and launch a virtual machine:
 
 ```sh
-kravt define -domain app-elfloader -start -kernel build/elfloader_qemu-x86_64 -memory 2048 -bridge -rootfs ../dynamic-apps/nginx/ -- /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
+kravt define -domain app-elfloader -start -kernel build/elfloader_qemu-x86_64 -memory 2048 -rootfs ../dynamic-apps/nginx/ -bridge -- /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
 ```
 
 To launch a virtual machine when none is running:
