@@ -213,6 +213,55 @@ func handleStart(args []string) {
 	}
 }
 
+func handleInfo(args []string) {
+	cmd := flag.NewFlagSet(fmt.Sprintf("%s info", os.Args[0]), flag.ExitOnError)
+	domainNamePtr := cmd.String("domain", "", "domain name")
+	cmd.Parse(args)
+	if len(cmd.Args()) > 0 {
+		fmt.Fprintln(os.Stderr, "unexpected arguments")
+		cmd.Usage()
+		return
+	}
+	if *domainNamePtr == "" {
+		fmt.Fprintln(os.Stderr, "missing domain name")
+		cmd.Usage()
+		return
+	}
+	conn, err := libvirt.NewConnect("qemu:///system")
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+	dom, err := conn.LookupDomainByName(*domainNamePtr)
+	if err != nil {
+		panic(err)
+	}
+	info, err := dom.GetInfo()
+	if err != nil {
+		panic(err)
+	}
+	switch info.State {
+	case libvirt.DOMAIN_NOSTATE:
+		fmt.Println("State: no state")
+	case libvirt.DOMAIN_RUNNING:
+		fmt.Println("State: running")
+	case libvirt.DOMAIN_BLOCKED:
+		fmt.Println("State: blocked on resource")
+	case libvirt.DOMAIN_PAUSED:
+		fmt.Println("State: paused")
+	case libvirt.DOMAIN_SHUTDOWN:
+		fmt.Println("State: being shut down")
+	case libvirt.DOMAIN_SHUTOFF:
+		fmt.Println("State: shut off")
+	case libvirt.DOMAIN_CRASHED:
+		fmt.Println("State: crashed")
+	case libvirt.DOMAIN_PMSUSPENDED:
+		fmt.Println("State: suspended by guest power management")
+	default:
+		fmt.Println("State: unknown")
+	}
+}
+
 func handleDestroy(args []string) {
 	cmd := flag.NewFlagSet(fmt.Sprintf("%s destroy", os.Args[0]), flag.ExitOnError)
 	domainNamePtr := cmd.String("domain", "", "domain name")
@@ -304,6 +353,7 @@ func printUsage() {
 	fmt.Fprintln(os.Stderr, "Commands:")
 	fmt.Fprintln(os.Stderr, "  define")
 	fmt.Fprintln(os.Stderr, "  start")
+	fmt.Fprintln(os.Stderr, "  info")
 	fmt.Fprintln(os.Stderr, "  destroy")
 	fmt.Fprintln(os.Stderr, "  undefine")
 }
@@ -318,6 +368,8 @@ func main() {
 		handleDefine(os.Args[2:])
 	case "start":
 		handleStart(os.Args[2:])
+	case "info":
+		handleInfo(os.Args[2:])
 	case "destroy":
 		handleDestroy(os.Args[2:])
 	case "undefine":
