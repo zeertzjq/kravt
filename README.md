@@ -2,6 +2,22 @@
 
 An utility to run and manage [Unikraft](https://github.com/unikraft/unikraft) unikernels using [libvirt](https://libvirt.org/).
 
+## Building and Installation
+
+This is a [Go](https://go.dev/) package, but a Makefile is also provided.
+
+```sh
+git clone https://github.com/zeertzjq/kravt.git
+cd kravt
+make && sudo make install
+```
+
+Installation prefix defaults to `/usr/local`. You can change it by setting the `PREFIX` variable:
+
+```sh
+make && sudo make PREFIX=/opt install
+```
+
 ## Examples
 
 ### Example with [app-nginx](https://github.com/unikraft/app-nginx)
