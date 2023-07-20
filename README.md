@@ -1,6 +1,6 @@
 # Kravt
 
-An utility to run and manage [Unikraft](https://github.com/unikraft/unikraft) unikernels using [libvirt](https://libvirt.org/).
+A utility to run and manage [Unikraft](https://github.com/unikraft/unikraft) unikernels using [libvirt](https://libvirt.org/).
 
 ## Building and Installation
 
