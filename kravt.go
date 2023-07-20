@@ -7,9 +7,21 @@ import (
 	"libvirt.org/go/libvirtxml"
 	"net"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
+
+func tryCommand(name string, args ...string) {
+	cmd := exec.Command(name, args...)
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+	fmt.Fprintf(os.Stderr, "Running: %s\n", cmd)
+	err := cmd.Run()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+	}
+}
 
 func handleDefine(args []string) {
 	cmd := flag.NewFlagSet(fmt.Sprintf("%s define", os.Args[0]), flag.ExitOnError)
@@ -130,6 +142,11 @@ func handleDefine(args []string) {
 		}
 	}
 	if *bridgePtr {
+		bridgePrefixSize, _ := net.IPMask(bridgeNetmask).Size()
+		bridgeCIDR := fmt.Sprintf("%s/%d", bridgeGateway.String(), bridgePrefixSize)
+		tryCommand("sudo", "ip", "link", "add", "dev", *bridgeNamePtr, "type", "bridge")
+		tryCommand("sudo", "ip", "address", "add", bridgeCIDR, "dev", *bridgeNamePtr)
+		tryCommand("sudo", "ip", "link", "set", "dev", *bridgeNamePtr, "up")
 		domcfg.Devices.Interfaces = []libvirtxml.DomainInterface{
 			{
 				Source: &libvirtxml.DomainInterfaceSource{
@@ -182,9 +199,29 @@ func handleUndefine(args []string) {
 	if err != nil {
 		panic(err)
 	}
+	interfaces := make([]libvirtxml.DomainInterface, 0)
+	xmldoc, err := dom.GetXMLDesc(0)
+	if err == nil {
+		domcfg := &libvirtxml.Domain{}
+		err = domcfg.Unmarshal(xmldoc)
+		if err == nil {
+			interfaces = domcfg.Devices.Interfaces
+		} else {
+			fmt.Fprintln(os.Stderr, err)
+		}
+	} else {
+		fmt.Fprintln(os.Stderr, err)
+	}
 	err = dom.Undefine()
 	if err != nil {
 		panic(err)
+	}
+	for _, iface := range interfaces {
+		if iface.Source != nil && iface.Source.Bridge != nil {
+			bridgeName := iface.Source.Bridge.Bridge
+			tryCommand("sudo", "ip", "link", "set", "dev", bridgeName, "down")
+			tryCommand("sudo", "ip", "link", "del", "dev", bridgeName)
+		}
 	}
 }
 
