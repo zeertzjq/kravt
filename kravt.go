@@ -6,22 +6,25 @@ import (
 	"libvirt.org/go/libvirt"
 	"libvirt.org/go/libvirtxml"
 	"net"
+	"os"
 	"path/filepath"
 	"strings"
 )
 
-func main() {
-	domainNamePtr := flag.String("domain", "", "domain name")
-	kernelPathPtr := flag.String("kernel", "", "path to kernel image")
-	rootfsPathPtr := flag.String("rootfs", "", "path to root filesystem")
-	mountTagPtr := flag.String("rootfs-tag", "fs0", "tag name to mount filesystem")
-	bridgePtr := flag.Bool("bridge", false, "bridge network to guest")
-	bridgeNamePtr := flag.String("bridge-name", "virbr0", "name of bridge device")
-	bridgeGuestPtr := flag.String("bridge-guest", "172.44.0.2", "guest IPv4 address")
-	bridgeGatewayPtr := flag.String("bridge-gateway", "172.44.0.1", "gateway IPv4 address")
-	bridgeNetmaskPtr := flag.String("bridge-netmask", "255.255.255.0", "bridge IPv4 subnet mask")
-	memoryPtr := flag.Uint("memory", 32, "assign MiB memory to guest")
-	flag.Parse()
+func handleDefine(conn *libvirt.Connect, args []string) {
+	cmd := flag.NewFlagSet("define", flag.ExitOnError)
+	domainNamePtr := cmd.String("domain", "", "domain name")
+	kernelPathPtr := cmd.String("kernel", "", "path to kernel image")
+	rootfsPathPtr := cmd.String("rootfs", "", "path to root filesystem")
+	mountTagPtr := cmd.String("rootfs-tag", "fs0", "tag name to mount filesystem")
+	bridgePtr := cmd.Bool("bridge", false, "bridge network to guest")
+	bridgeNamePtr := cmd.String("bridge-name", "virbr0", "name of bridge device")
+	bridgeGuestPtr := cmd.String("bridge-guest", "172.44.0.2", "guest IPv4 address")
+	bridgeGatewayPtr := cmd.String("bridge-gateway", "172.44.0.1", "gateway IPv4 address")
+	bridgeNetmaskPtr := cmd.String("bridge-netmask", "255.255.255.0", "bridge IPv4 subnet mask")
+	memoryPtr := cmd.Uint("memory", 32, "assign MiB memory to guest")
+	startPtr := cmd.Bool("start", false, "start the domain")
+	cmd.Parse(args)
 	if *domainNamePtr == "" {
 		panic("missing domain name")
 	}
@@ -140,15 +143,49 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	dom, err := conn.DomainDefineXML(xmldoc)
+	if err != nil {
+		panic(err)
+	}
+	if *startPtr {
+		err = dom.Create()
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func handleUndefine(conn *libvirt.Connect, args []string) {
+	cmd := flag.NewFlagSet("undefine", flag.ExitOnError)
+	domainNamePtr := cmd.String("domain", "", "domain name")
+	cmd.Parse(args)
+	if *domainNamePtr == "" {
+		panic("missing domain name")
+	}
+	dom, err := conn.LookupDomainByName(*domainNamePtr)
+	if err != nil {
+		panic(err)
+	}
+	dom.Undefine()
+}
+
+func main() {
+	if len(os.Args) < 2 {
+		panic("missing command")
+	}
+
 	conn, err := libvirt.NewConnect("qemu:///system")
 	if err != nil {
 		panic(err)
 	}
 	defer conn.Close()
-	dom, err := conn.DomainDefineXML(xmldoc)
-	if err != nil {
-		panic(err)
+
+	switch os.Args[1] {
+	case "define":
+		handleDefine(conn, os.Args[2:])
+	case "undefine":
+		handleUndefine(conn, os.Args[2:])
+	default:
+		panic("unknown command")
 	}
-	fmt.Scanln()
-	dom.Undefine()
 }
