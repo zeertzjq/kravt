@@ -25,43 +25,43 @@ make && sudo make PREFIX=/opt install
 To define a libvirt domain for the unikernel without launching a virtual machine:
 
 ```sh
-kravt define -domain app-nginx -kernel build/nginx_qemu-x86_64 -rootfs fs0/ -bridge
+kravt define -kernel build/nginx_qemu-x86_64 -rootfs fs0/ -bridge
 ```
 
 To define a libvirt domain for the unikernel and launch a virtual machine:
 
 ```sh
-kravt define -domain app-nginx -start -kernel build/nginx_qemu-x86_64 -rootfs fs0/ -bridge
+kravt define -start -kernel build/nginx_qemu-x86_64 -rootfs fs0/ -bridge
 ```
 
 To launch a virtual machine when none is running:
 
 ```sh
-kravt start -domain app-nginx
+kravt start
 ```
 
 To print information about the virtual machine:
 
 ```sh
-kravt info -domain app-nginx
+kravt info
 ```
 
 To shut down the running virtual machine:
 
 ```sh
-kravt destroy -domain app-nginx
+kravt destroy
 ```
 
 To undefine the libvirt domain without shutting down the virtual machine:
 
 ```sh
-kravt undefine -domain app-nginx
+kravt undefine
 ```
 
 To undefine the libvirt domain and shut down the virtual machine:
 
 ```sh
-kravt undefine -domain app-nginx -destroy
+kravt undefine -destroy
 ```
 
 ### Example using [app-elfloader](https://github.com/unikraft/app-elfloader) and [nginx](https://github.com/unikraft/dynamic-apps/tree/master/nginx)
@@ -69,41 +69,41 @@ kravt undefine -domain app-nginx -destroy
 To define a libvirt domain for the unikernel without launching a virtual machine:
 
 ```sh
-kravt define -domain app-elfloader -kernel build/elfloader_qemu-x86_64 -memory 2048 -rootfs ../dynamic-apps/nginx/ -bridge -- /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
+kravt define -kernel build/elfloader_qemu-x86_64 -memory 2048 -rootfs ../dynamic-apps/nginx/ -bridge -- /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
 ```
 
 To define a libvirt domain for the unikernel and launch a virtual machine:
 
 ```sh
-kravt define -domain app-elfloader -start -kernel build/elfloader_qemu-x86_64 -memory 2048 -rootfs ../dynamic-apps/nginx/ -bridge -- /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
+kravt define -start -kernel build/elfloader_qemu-x86_64 -memory 2048 -rootfs ../dynamic-apps/nginx/ -bridge -- /usr/local/nginx/sbin/nginx -c /usr/local/nginx/conf/nginx.conf
 ```
 
 To launch a virtual machine when none is running:
 
 ```sh
-kravt start -domain app-elfloader
+kravt start
 ```
 
 To print information about the virtual machine:
 
 ```sh
-kravt info -domain app-elfloader
+kravt info
 ```
 
 To shut down the running virtual machine:
 
 ```sh
-kravt destroy -domain app-elfloader
+kravt destroy
 ```
 
 To undefine the libvirt domain without shutting down the virtual machine:
 
 ```sh
-kravt undefine -domain app-elfloader
+kravt undefine
 ```
 
 To undefine the libvirt domain and shut down the virtual machine:
 
 ```sh
-kravt undefine -domain app-elfloader -destroy
+kravt undefine -destroy
 ```

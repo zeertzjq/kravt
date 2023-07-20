@@ -26,7 +26,7 @@ func tryCommand(name string, args ...string) {
 
 func handleDefine(args []string) {
 	cmd := flag.NewFlagSet(fmt.Sprintf("%s define", os.Args[0]), flag.ExitOnError)
-	domainNamePtr := cmd.String("domain", "", "domain name")
+	domainNamePtr := cmd.String("domain", "", "domain name (default current directory name)")
 	kernelPathPtr := cmd.String("kernel", "", "path to kernel image")
 	rootfsPathPtr := cmd.String("rootfs", "", "path to root filesystem")
 	mountTagPtr := cmd.String("rootfs-tag", "fs0", "tag name to mount filesystem")
@@ -39,9 +39,11 @@ func handleDefine(args []string) {
 	startPtr := cmd.Bool("start", false, "start the domain")
 	cmd.Parse(args)
 	if *domainNamePtr == "" {
-		fmt.Fprintln(os.Stderr, "missing domain name")
-		cmd.Usage()
-		return
+		cwd, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		*domainNamePtr = filepath.Base(cwd)
 	}
 	if *kernelPathPtr == "" {
 		fmt.Fprintln(os.Stderr, "missing kernel image path")
@@ -187,7 +189,7 @@ func handleDefine(args []string) {
 
 func handleStart(args []string) {
 	cmd := flag.NewFlagSet(fmt.Sprintf("%s start", os.Args[0]), flag.ExitOnError)
-	domainNamePtr := cmd.String("domain", "", "domain name")
+	domainNamePtr := cmd.String("domain", "", "domain name (default current directory name)")
 	cmd.Parse(args)
 	if len(cmd.Args()) > 0 {
 		fmt.Fprintln(os.Stderr, "unexpected arguments")
@@ -195,9 +197,11 @@ func handleStart(args []string) {
 		return
 	}
 	if *domainNamePtr == "" {
-		fmt.Fprintln(os.Stderr, "missing domain name")
-		cmd.Usage()
-		return
+		cwd, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		*domainNamePtr = filepath.Base(cwd)
 	}
 	conn, err := libvirt.NewConnect("qemu:///system")
 	if err != nil {
@@ -216,7 +220,7 @@ func handleStart(args []string) {
 
 func handleInfo(args []string) {
 	cmd := flag.NewFlagSet(fmt.Sprintf("%s info", os.Args[0]), flag.ExitOnError)
-	domainNamePtr := cmd.String("domain", "", "domain name")
+	domainNamePtr := cmd.String("domain", "", "domain name (default current directory name)")
 	cmd.Parse(args)
 	if len(cmd.Args()) > 0 {
 		fmt.Fprintln(os.Stderr, "unexpected arguments")
@@ -224,9 +228,11 @@ func handleInfo(args []string) {
 		return
 	}
 	if *domainNamePtr == "" {
-		fmt.Fprintln(os.Stderr, "missing domain name")
-		cmd.Usage()
-		return
+		cwd, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		*domainNamePtr = filepath.Base(cwd)
 	}
 	conn, err := libvirt.NewConnect("qemu:///system")
 	if err != nil {
@@ -269,7 +275,7 @@ func handleInfo(args []string) {
 
 func handleDestroy(args []string) {
 	cmd := flag.NewFlagSet(fmt.Sprintf("%s destroy", os.Args[0]), flag.ExitOnError)
-	domainNamePtr := cmd.String("domain", "", "domain name")
+	domainNamePtr := cmd.String("domain", "", "domain name (default current directory name)")
 	cmd.Parse(args)
 	if len(cmd.Args()) > 0 {
 		fmt.Fprintln(os.Stderr, "unexpected arguments")
@@ -277,9 +283,11 @@ func handleDestroy(args []string) {
 		return
 	}
 	if *domainNamePtr == "" {
-		fmt.Fprintln(os.Stderr, "missing domain name")
-		cmd.Usage()
-		return
+		cwd, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		*domainNamePtr = filepath.Base(cwd)
 	}
 	conn, err := libvirt.NewConnect("qemu:///system")
 	if err != nil {
@@ -298,7 +306,7 @@ func handleDestroy(args []string) {
 
 func handleUndefine(args []string) {
 	cmd := flag.NewFlagSet(fmt.Sprintf("%s undefine", os.Args[0]), flag.ExitOnError)
-	domainNamePtr := cmd.String("domain", "", "domain name")
+	domainNamePtr := cmd.String("domain", "", "domain name (default current directory name)")
 	destroyPtr := cmd.Bool("destroy", false, "destroy the domain")
 	cmd.Parse(args)
 	if len(cmd.Args()) > 0 {
@@ -307,9 +315,11 @@ func handleUndefine(args []string) {
 		return
 	}
 	if *domainNamePtr == "" {
-		fmt.Fprintln(os.Stderr, "missing domain name")
-		cmd.Usage()
-		return
+		cwd, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		*domainNamePtr = filepath.Base(cwd)
 	}
 	conn, err := libvirt.NewConnect("qemu:///system")
 	if err != nil {
