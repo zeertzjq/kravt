@@ -188,6 +188,11 @@ func handleStart(args []string) {
 	cmd := flag.NewFlagSet(fmt.Sprintf("%s start", os.Args[0]), flag.ExitOnError)
 	domainNamePtr := cmd.String("domain", "", "domain name")
 	cmd.Parse(args)
+	if len(cmd.Args()) > 0 {
+		fmt.Fprintln(os.Stderr, "unexpected arguments")
+		cmd.Usage()
+		return
+	}
 	if *domainNamePtr == "" {
 		fmt.Fprintln(os.Stderr, "missing domain name")
 		cmd.Usage()
@@ -212,6 +217,11 @@ func handleDestroy(args []string) {
 	cmd := flag.NewFlagSet(fmt.Sprintf("%s destroy", os.Args[0]), flag.ExitOnError)
 	domainNamePtr := cmd.String("domain", "", "domain name")
 	cmd.Parse(args)
+	if len(cmd.Args()) > 0 {
+		fmt.Fprintln(os.Stderr, "unexpected arguments")
+		cmd.Usage()
+		return
+	}
 	if *domainNamePtr == "" {
 		fmt.Fprintln(os.Stderr, "missing domain name")
 		cmd.Usage()
@@ -236,6 +246,11 @@ func handleUndefine(args []string) {
 	cmd := flag.NewFlagSet(fmt.Sprintf("%s undefine", os.Args[0]), flag.ExitOnError)
 	domainNamePtr := cmd.String("domain", "", "domain name")
 	cmd.Parse(args)
+	if len(cmd.Args()) > 0 {
+		fmt.Fprintln(os.Stderr, "unexpected arguments")
+		cmd.Usage()
+		return
+	}
 	if *domainNamePtr == "" {
 		fmt.Fprintln(os.Stderr, "missing domain name")
 		cmd.Usage()
