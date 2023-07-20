@@ -11,8 +11,8 @@ import (
 	"strings"
 )
 
-func handleDefine(conn *libvirt.Connect, args []string) {
-	cmd := flag.NewFlagSet("define", flag.ExitOnError)
+func handleDefine(args []string) {
+	cmd := flag.NewFlagSet(fmt.Sprintf("%s define", os.Args[0]), flag.ExitOnError)
 	domainNamePtr := cmd.String("domain", "", "domain name")
 	kernelPathPtr := cmd.String("kernel", "", "path to kernel image")
 	rootfsPathPtr := cmd.String("rootfs", "", "path to root filesystem")
@@ -26,10 +26,14 @@ func handleDefine(conn *libvirt.Connect, args []string) {
 	startPtr := cmd.Bool("start", false, "start the domain")
 	cmd.Parse(args)
 	if *domainNamePtr == "" {
-		panic("missing domain name")
+		fmt.Fprintln(os.Stderr, "missing domain name")
+		cmd.Usage()
+		return
 	}
 	if *kernelPathPtr == "" {
-		panic("missing kernel image path")
+		fmt.Fprintln(os.Stderr, "missing kernel image path")
+		cmd.Usage()
+		return
 	}
 	kernelPath, err := filepath.Abs(*kernelPathPtr)
 	if err != nil {
@@ -143,6 +147,11 @@ func handleDefine(conn *libvirt.Connect, args []string) {
 	if err != nil {
 		panic(err)
 	}
+	conn, err := libvirt.NewConnect("qemu:///system")
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
 	dom, err := conn.DomainDefineXML(xmldoc)
 	if err != nil {
 		panic(err)
@@ -155,13 +164,20 @@ func handleDefine(conn *libvirt.Connect, args []string) {
 	}
 }
 
-func handleUndefine(conn *libvirt.Connect, args []string) {
-	cmd := flag.NewFlagSet("undefine", flag.ExitOnError)
+func handleUndefine(args []string) {
+	cmd := flag.NewFlagSet(fmt.Sprintf("%s undefine", os.Args[0]), flag.ExitOnError)
 	domainNamePtr := cmd.String("domain", "", "domain name")
 	cmd.Parse(args)
 	if *domainNamePtr == "" {
-		panic("missing domain name")
+		fmt.Fprintln(os.Stderr, "missing domain name")
+		cmd.Usage()
+		return
 	}
+	conn, err := libvirt.NewConnect("qemu:///system")
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
 	dom, err := conn.LookupDomainByName(*domainNamePtr)
 	if err != nil {
 		panic(err)
@@ -172,13 +188,20 @@ func handleUndefine(conn *libvirt.Connect, args []string) {
 	}
 }
 
-func handleStart(conn *libvirt.Connect, args []string) {
-	cmd := flag.NewFlagSet("start", flag.ExitOnError)
+func handleStart(args []string) {
+	cmd := flag.NewFlagSet(fmt.Sprintf("%s start", os.Args[0]), flag.ExitOnError)
 	domainNamePtr := cmd.String("domain", "", "domain name")
 	cmd.Parse(args)
 	if *domainNamePtr == "" {
-		panic("missing domain name")
+		fmt.Fprintln(os.Stderr, "missing domain name")
+		cmd.Usage()
+		return
 	}
+	conn, err := libvirt.NewConnect("qemu:///system")
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
 	dom, err := conn.LookupDomainByName(*domainNamePtr)
 	if err != nil {
 		panic(err)
@@ -189,13 +212,20 @@ func handleStart(conn *libvirt.Connect, args []string) {
 	}
 }
 
-func handleDestroy(conn *libvirt.Connect, args []string) {
-	cmd := flag.NewFlagSet("destroy", flag.ExitOnError)
+func handleDestroy(args []string) {
+	cmd := flag.NewFlagSet(fmt.Sprintf("%s destroy", os.Args[0]), flag.ExitOnError)
 	domainNamePtr := cmd.String("domain", "", "domain name")
 	cmd.Parse(args)
 	if *domainNamePtr == "" {
-		panic("missing domain name")
+		fmt.Fprintln(os.Stderr, "missing domain name")
+		cmd.Usage()
+		return
 	}
+	conn, err := libvirt.NewConnect("qemu:///system")
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
 	dom, err := conn.LookupDomainByName(*domainNamePtr)
 	if err != nil {
 		panic(err)
@@ -206,27 +236,31 @@ func handleDestroy(conn *libvirt.Connect, args []string) {
 	}
 }
 
+func printUsage() {
+	fmt.Fprintf(os.Stderr, "Usage: %s <command> [options]\n", os.Args[0])
+	fmt.Fprintln(os.Stderr, "Commands:")
+	fmt.Fprintln(os.Stderr, "  define")
+	fmt.Fprintln(os.Stderr, "  undefine")
+	fmt.Fprintln(os.Stderr, "  start")
+	fmt.Fprintln(os.Stderr, "  destroy")
+}
+
 func main() {
 	if len(os.Args) < 2 {
-		panic("missing command")
+		printUsage()
+		return
 	}
-
-	conn, err := libvirt.NewConnect("qemu:///system")
-	if err != nil {
-		panic(err)
-	}
-	defer conn.Close()
-
 	switch os.Args[1] {
 	case "define":
-		handleDefine(conn, os.Args[2:])
+		handleDefine(os.Args[2:])
 	case "undefine":
-		handleUndefine(conn, os.Args[2:])
+		handleUndefine(os.Args[2:])
 	case "start":
-		handleStart(conn, os.Args[2:])
+		handleStart(os.Args[2:])
 	case "destroy":
-		handleDestroy(conn, os.Args[2:])
+		handleDestroy(os.Args[2:])
 	default:
-		panic("unknown command")
+		printUsage()
+		return
 	}
 }
