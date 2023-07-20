@@ -81,7 +81,7 @@ func handleDefine(args []string) {
 		}
 	}
 	cmdlineArgs = append(cmdlineArgs, "--")
-	for _, arg := range flag.Args() {
+	for _, arg := range cmd.Args() {
 		cmdlineArgs = append(cmdlineArgs, arg)
 	}
 	cmdline := strings.Join(cmdlineArgs, " ")
@@ -102,6 +102,9 @@ func handleDefine(args []string) {
 			},
 			Kernel:  kernelPath,
 			Cmdline: cmdline,
+		},
+		CPU: &libvirtxml.DomainCPU{
+			Mode: "host-model",
 		},
 		Clock: &libvirtxml.DomainClock{
 			Offset:     "utc",
